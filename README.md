@@ -4,6 +4,10 @@
 
 ## C#
 
+> WIP
+
+
+
 
 
 ## Xamarin.Forms tutorials
@@ -12,11 +16,136 @@
 
 Difference between ```Margin``` and ```Padding```
 
+```xaml
+    <StackLayout Margin="20,35,20,20">
+    </StackLayout>
+```
+
 ![This image has an empty alt attribute; its file name is GW-1024x509.png](README.assets/GW-1024x509.png)
+
+### Button
+
+Handle clicks by setting the `Clicked` event to an event handler from code:
+
+```xaml
+<Button Text="Click me"
+        Clicked="OnButtonClicked" />
+```
+
+```c#
+void OnButtonClicked(object sender, EventArgs e)
+{
+    (sender as Button).Text = "Click me again!";
+}
+```
+
+### Image
+
+The `OnPlatform` markup extension enables you to customize UI appearance on a per-platform basis. 
+
+```xaml
+<Image Source="XamarinLogo"
+       WidthRequest="{OnPlatform iOS=300, Android=250}"
+       HorizontalOptions="Center" />
+```
 
 ### Grid
 
+Use **span** to occupy multiple rows or columns
 
+```xaml
+<Grid Margin="20,35,20,20">
+    <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="0.5*" />
+        <ColumnDefinition Width="0.5*" />
+    </Grid.ColumnDefinitions>
+    <Grid.RowDefinitions>
+        <RowDefinition Height="50" />
+        <RowDefinition Height="30" />
+        <RowDefinition Height="30" />
+    </Grid.RowDefinitions>
+    <Label Grid.ColumnSpan="2"
+           Text="This text uses the ColumnSpan property to span both columns." />
+    <Label Grid.Row="1"
+           Grid.RowSpan="2"
+           Text="This text uses the RowSpan property to span two rows." />
+</Grid>
+```
+
+### CollectionView
+
+Binds the `ItemsSource` property to the property in code as a data source of the collection view:
+
+```xaml
+// XAML
+<CollectionView ItemsSource="{Binding Monkeys}" />
+```
+
+```c#
+// Code
+
+        public MainPage()
+        {
+            InitializeComponent();
+
+            Monkeys = new List<Monkey>();
+            Monkeys.Add(new Monkey
+            {
+                Name = "Baboon",
+                Location = "Africa & Asia"
+            });
+						
+            BindingContext = this;
+        }
+```
+
+Respond to item selection:
+
+```xaml
+// XAML
+<CollectionView ItemsSource="{Binding Monkeys}"
+                SelectionMode="Single"
+                SelectionChanged="OnSelectionChanged" />
+```
+
+```c#
+// Code
+void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+{
+    Monkey selectedItem = e.CurrentSelection[0] as Monkey;
+}
+```
+
+Use `DataTemplate` property to customize item appearance:
+
+```xaml
+<CollectionView ItemsSource="{Binding Monkeys}"
+                SelectionMode="Single"
+                SelectionChanged="OnSelectionChanged">
+    <CollectionView.ItemTemplate>
+        <DataTemplate>
+            <Grid Padding="10"
+                  RowDefinitions="Auto, *"
+                  ColumnDefinitions="Auto, *">
+                <Image Grid.RowSpan="2"
+                       Source="{Binding ImageUrl}"
+                       Aspect="AspectFill"
+                       HeightRequest="60"
+                       WidthRequest="60" />
+                <Label Grid.Column="1"
+                       Text="{Binding Name}"
+                       FontAttributes="Bold" />
+                <Label Grid.Row="1"
+                       Grid.Column="1"
+                       Text="{Binding Location}"
+                       VerticalOptions="End" />
+            </Grid>
+        </DataTemplate>
+    </CollectionView.ItemTemplate>
+</CollectionView>
+```
+
+![Screenshot of a CollectionView whose items are templated with a data template](README.assets/customize-item-appearance.png)
 
 
 
