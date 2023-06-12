@@ -160,7 +160,33 @@ bool response = await DisplayAlert("Save?", "Would you like to save your data?",
 string action = await DisplayActionSheet("Send to?", "Cancel", null, "Email", "Twitter", "Facebook");
 ```
 
+### App Lifecycle
 
+> - The `OnStart` method is invoked when the application starts.
+> - The `OnSleep` method is invoked when the application goes to the background.
+> - The `OnResume` method is invoked when the application resumes from the background.
+
+**App singleton**
+
+```c#
+(Application.Current as App).DisplayText = entry.Text; // Get App singleton
+```
+
+**Properties dictionary for lightweight local storage**
+
+The [`Application`](https://learn.microsoft.com/en-us/dotnet/api/xamarin.forms.application) subclass has a static [`Properties`](https://learn.microsoft.com/en-us/dotnet/api/xamarin.forms.application.properties#xamarin-forms-application-properties) dictionary that can be used to store data across lifecycle state changes. 
+
+> Just similar to `UserDefaults` in iOS development
+
+```c#
+// Read value
+if (Properties.ContainsKey(displayText))
+{
+		DisplayText = (string)Properties[displayText];
+}
+// Save value
+Properties[displayText] = DisplayText;
+```
 
 
 
