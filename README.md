@@ -147,6 +147,21 @@ Use `DataTemplate` property to customize item appearance:
 
 ![Screenshot of a CollectionView whose items are templated with a data template](README.assets/customize-item-appearance.png)
 
+### Alert
+
+```c#
+// Alert with 1 option
+await DisplayAlert("Alert", "This is an alert.", "OK");
+
+// Alert with 2 options
+bool response = await DisplayAlert("Save?", "Would you like to save your data?", "Yes", "No");
+
+// Bottom sheet with several options
+string action = await DisplayActionSheet("Send to?", "Cancel", null, "Email", "Twitter", "Facebook");
+```
+
+
+
 
 
 ## XAML
