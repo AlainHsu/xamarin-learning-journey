@@ -160,6 +160,10 @@ bool response = await DisplayAlert("Save?", "Would you like to save your data?",
 string action = await DisplayActionSheet("Send to?", "Cancel", null, "Email", "Twitter", "Facebook");
 ```
 
+
+
+## App Fundamentals
+
 ### App Lifecycle
 
 > - The `OnStart` method is invoked when the application starts.
@@ -187,6 +191,105 @@ if (Properties.ContainsKey(displayText))
 // Save value
 Properties[displayText] = DisplayText;
 ```
+
+### Local database
+
+**Add package**
+
+In the **NuGet Package Manager**, select the **Browse** tab, search for the **sqlite-net-pcl** NuGet package, select it, and click the **Install** button to add it to the project.
+
+**Define object class**
+
+```c#
+using SQLite;
+
+namespace LocalDatabaseTutorial
+{
+    public class Person
+    {
+        [PrimaryKey, AutoIncrement]
+        public int ID { get; set; }
+        public string Name { get; set; }
+        public int Age { get; set; }
+    }
+}
+```
+
+**Define database class**
+
+```c#
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using SQLite;
+
+namespace LocalDatabaseTutorial
+{
+    public class Database
+    {
+        readonly SQLiteAsyncConnection _database;
+
+        public Database(string dbPath)
+        {
+            _database = new SQLiteAsyncConnection(dbPath);
+            _database.CreateTableAsync<Person>().Wait();
+        }
+
+        public Task<List<Person>> GetPeopleAsync()
+        {
+            return _database.Table<Person>().ToListAsync();
+          
+						//await Task.Delay(3000);
+            //return new List<Person>
+            //{
+            //    new Person{Name = "Alice", Age = 25},
+            //    new Person { Name = "Bob", Age = 30 },
+            //    new Person { Name = "Charlie", Age = 35 }
+            //};
+        }
+
+        public Task<int> SavePersonAsync(Person person)
+        {
+            return _database.InsertAsync(person);
+        }
+    }
+}
+```
+
+>  The return type  `Task<something>` means this is an asynchronous operation, just like `Future<something>` in Flutter development.
+
+
+
+**Initial singleton database**
+
+```c#
+using System;
+using System.IO;
+using Xamarin.Forms;
+
+namespace LocalDatabaseTutorial
+{
+    public partial class App : Application
+    {
+      	// Create database singleton
+        static Database database;
+
+        public static Database Database
+        {
+            get
+            {
+                if (database == null)
+                {
+                  // Initial database
+                    database = new Database(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "people.db3"));
+                }
+                return database;
+            }
+        }
+    }
+}
+```
+
+
 
 
 
