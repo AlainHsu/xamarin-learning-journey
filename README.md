@@ -147,6 +147,303 @@ Use `DataTemplate` property to customize item appearance:
 
 ![Screenshot of a CollectionView whose items are templated with a data template](README.assets/customize-item-appearance.png)
 
+### Alert
+
+```c#
+// Alert with 1 option
+await DisplayAlert("Alert", "This is an alert.", "OK");
+
+// Alert with 2 options
+bool response = await DisplayAlert("Save?", "Would you like to save your data?", "Yes", "No");
+
+// Bottom sheet with several options
+string action = await DisplayActionSheet("Send to?", "Cancel", null, "Email", "Twitter", "Facebook");
+```
+
+
+
+## App Fundamentals
+
+### App Lifecycle
+
+> - The `OnStart` method is invoked when the application starts.
+> - The `OnSleep` method is invoked when the application goes to the background.
+> - The `OnResume` method is invoked when the application resumes from the background.
+
+**App singleton**
+
+```c#
+(Application.Current as App).DisplayText = entry.Text; // Get App singleton
+```
+
+**Properties dictionary for lightweight local storage**
+
+The [`Application`](https://learn.microsoft.com/en-us/dotnet/api/xamarin.forms.application) subclass has a static [`Properties`](https://learn.microsoft.com/en-us/dotnet/api/xamarin.forms.application.properties#xamarin-forms-application-properties) dictionary that can be used to store data across lifecycle state changes. 
+
+> Just similar to `UserDefaults` in iOS development
+
+```c#
+// Read value
+if (Properties.ContainsKey(displayText))
+{
+		DisplayText = (string)Properties[displayText];
+}
+// Save value
+Properties[displayText] = DisplayText;
+```
+
+### Local database
+
+**Add package**
+
+In the **NuGet Package Manager**, select the **Browse** tab, search for the **sqlite-net-pcl** NuGet package, select it, and click the **Install** button to add it to the project.
+
+**Define object class**
+
+```c#
+using SQLite;
+
+namespace LocalDatabaseTutorial
+{
+    public class Person
+    {
+        [PrimaryKey, AutoIncrement]
+        public int ID { get; set; }
+        public string Name { get; set; }
+        public int Age { get; set; }
+    }
+}
+```
+
+**Define database class**
+
+```c#
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using SQLite;
+
+namespace LocalDatabaseTutorial
+{
+    public class Database
+    {
+        readonly SQLiteAsyncConnection _database;
+
+        public Database(string dbPath)
+        {
+            _database = new SQLiteAsyncConnection(dbPath);
+            _database.CreateTableAsync<Person>().Wait();
+        }
+
+        public Task<List<Person>> GetPeopleAsync()
+        {
+            return _database.Table<Person>().ToListAsync();
+          
+						//await Task.Delay(3000);
+            //return new List<Person>
+            //{
+            //    new Person{Name = "Alice", Age = 25},
+            //    new Person { Name = "Bob", Age = 30 },
+            //    new Person { Name = "Charlie", Age = 35 }
+            //};
+        }
+
+        public Task<int> SavePersonAsync(Person person)
+        {
+            return _database.InsertAsync(person);
+        }
+    }
+}
+```
+
+>  The return type  `Task<something>` means this is an asynchronous operation, just like `Future<something>` in Flutter development.
+
+
+
+**Initial singleton database**
+
+```c#
+using System;
+using System.IO;
+using Xamarin.Forms;
+
+namespace LocalDatabaseTutorial
+{
+    public partial class App : Application
+    {
+      	// Create database singleton
+        static Database database;
+
+        public static Database Database
+        {
+            get
+            {
+                if (database == null)
+                {
+                  // Initial database
+                    database = new Database(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "people.db3"));
+                }
+                return database;
+            }
+        }
+    }
+}
+```
+
+
+
+### Web Service
+
+**Add package**
+
+Use `Newtonsoft.Json` package.
+
+**Define Constants for endpoint**
+
+```c#
+namespace WebServiceTutorial
+{
+    public static class Constants
+    {
+        public const string GitHubReposEndpoint = "https://api.github.com/orgs/dotnet/repos";
+    }
+}
+```
+
+**Define Repository for Json model**
+
+```c#
+using System;
+using Newtonsoft.Json;
+
+namespace WebServiceTutorial
+{
+    public class Repository
+    {
+        [JsonProperty("name")]
+        public string Name { get; set; }
+
+        [JsonProperty("description")]
+        public string Description { get; set; }
+      
+				[JsonProperty("html_url")]
+        public Uri GithubHomeUrl { get; set; }
+
+        [JsonProperty("homepage")]
+        public Uri Homepage { get; set; }
+
+        [JsonProperty("watchers")]
+        public int Watchers { get; set; }
+    }
+}
+```
+
+**Define RestService for API request**
+
+```c#
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Threading.Tasks;
+using Xamarin.Forms;
+
+namespace WebServiceTutorial
+{
+    public class RestService
+    {
+        HttpClient _client;
+
+        public RestService()
+        {
+            _client = new HttpClient();
+
+            if (Device.RuntimePlatform == Device.UWP)
+            {
+                _client.DefaultRequestHeaders.Add("User-Agent", ".NET Foundation Repository Reporter");
+                _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github.v3+json"));
+            }
+        }
+
+        public async Task<List<Repository>> GetRepositoriesAsync(string uri)
+        {
+            List<Repository> repositories = null;
+            try
+            {
+                HttpResponseMessage response = await _client.GetAsync(uri);
+                if (response.IsSuccessStatusCode)
+                {
+                    string content = await response.Content.ReadAsStringAsync();
+                    repositories = JsonConvert.DeserializeObject<List<Repository>>(content);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("\tERROR {0}", ex.Message);
+            }
+
+            return repositories;
+        }
+    }
+}
+```
+
+**Consume Web service**
+
+```c#
+using System;
+using System.Collections.Generic;
+using Xamarin.Forms;
+
+namespace WebServiceTutorial
+{
+    public partial class MainPage : ContentPage
+    {
+        RestService _restService;
+
+        public MainPage()
+        {
+            InitializeComponent();
+            _restService = new RestService();
+        }
+
+        async void OnButtonClicked(object sender, EventArgs e)
+        {
+            List<Repository> repositories = await _restService.GetRepositoriesAsync(Constants.GitHubReposEndpoint);
+            collectionView.ItemsSource = repositories;
+        }
+    }
+}
+```
+
+**Present UI**
+
+```xaml
+    <StackLayout Margin="20,35,20,20">
+        <Button Text="Get Repository Data"
+                Clicked="OnButtonClicked" />
+        <CollectionView x:Name="collectionView">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <StackLayout>
+                        <Label Text="{Binding Name}"
+                               FontSize="Medium" />
+                        <Label Text="{Binding Description}"
+                               TextColor="Silver"
+                               FontSize="Small" />
+                        <Label Text="{Binding GitHubHomeUrl}"
+                               TextColor="Gray"
+                               FontSize="Caption" />
+                    </StackLayout>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </StackLayout>
+```
+
+
+
 
 
 ## XAML
