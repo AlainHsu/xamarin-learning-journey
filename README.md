@@ -291,6 +291,159 @@ namespace LocalDatabaseTutorial
 
 
 
+### Web Service
+
+**Add package**
+
+Use `Newtonsoft.Json` package.
+
+**Define Constants for endpoint**
+
+```c#
+namespace WebServiceTutorial
+{
+    public static class Constants
+    {
+        public const string GitHubReposEndpoint = "https://api.github.com/orgs/dotnet/repos";
+    }
+}
+```
+
+**Define Repository for Json model**
+
+```c#
+using System;
+using Newtonsoft.Json;
+
+namespace WebServiceTutorial
+{
+    public class Repository
+    {
+        [JsonProperty("name")]
+        public string Name { get; set; }
+
+        [JsonProperty("description")]
+        public string Description { get; set; }
+      
+				[JsonProperty("html_url")]
+        public Uri GithubHomeUrl { get; set; }
+
+        [JsonProperty("homepage")]
+        public Uri Homepage { get; set; }
+
+        [JsonProperty("watchers")]
+        public int Watchers { get; set; }
+    }
+}
+```
+
+**Define RestService for API request**
+
+```c#
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Threading.Tasks;
+using Xamarin.Forms;
+
+namespace WebServiceTutorial
+{
+    public class RestService
+    {
+        HttpClient _client;
+
+        public RestService()
+        {
+            _client = new HttpClient();
+
+            if (Device.RuntimePlatform == Device.UWP)
+            {
+                _client.DefaultRequestHeaders.Add("User-Agent", ".NET Foundation Repository Reporter");
+                _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github.v3+json"));
+            }
+        }
+
+        public async Task<List<Repository>> GetRepositoriesAsync(string uri)
+        {
+            List<Repository> repositories = null;
+            try
+            {
+                HttpResponseMessage response = await _client.GetAsync(uri);
+                if (response.IsSuccessStatusCode)
+                {
+                    string content = await response.Content.ReadAsStringAsync();
+                    repositories = JsonConvert.DeserializeObject<List<Repository>>(content);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("\tERROR {0}", ex.Message);
+            }
+
+            return repositories;
+        }
+    }
+}
+```
+
+**Consume Web service**
+
+```c#
+using System;
+using System.Collections.Generic;
+using Xamarin.Forms;
+
+namespace WebServiceTutorial
+{
+    public partial class MainPage : ContentPage
+    {
+        RestService _restService;
+
+        public MainPage()
+        {
+            InitializeComponent();
+            _restService = new RestService();
+        }
+
+        async void OnButtonClicked(object sender, EventArgs e)
+        {
+            List<Repository> repositories = await _restService.GetRepositoriesAsync(Constants.GitHubReposEndpoint);
+            collectionView.ItemsSource = repositories;
+        }
+    }
+}
+```
+
+**Present UI**
+
+```xaml
+    <StackLayout Margin="20,35,20,20">
+        <Button Text="Get Repository Data"
+                Clicked="OnButtonClicked" />
+        <CollectionView x:Name="collectionView">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <StackLayout>
+                        <Label Text="{Binding Name}"
+                               FontSize="Medium" />
+                        <Label Text="{Binding Description}"
+                               TextColor="Silver"
+                               FontSize="Small" />
+                        <Label Text="{Binding GitHubHomeUrl}"
+                               TextColor="Gray"
+                               FontSize="Caption" />
+                    </StackLayout>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </StackLayout>
+```
+
+
+
 
 
 ## XAML
