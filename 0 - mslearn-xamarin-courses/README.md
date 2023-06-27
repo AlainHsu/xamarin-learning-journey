@@ -32,7 +32,7 @@
           <td></td>
             <td>Introduction to Xamarin.iOS</td>
             <td>https://learn.microsoft.com/en-us/training/modules/introduction-to-xamarin-ios/</td>
-            <td></td>
+            <td>Done</td>
         </tr>
         <tr>
           <td></td>
@@ -114,3 +114,4 @@
         </tr>
     </tbody>
 </table>
+
