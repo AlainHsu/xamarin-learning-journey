@@ -38,7 +38,7 @@
           <td></td>
           <td>Introduction to Xamarin.Android</td>
             <td>https://learn.microsoft.com/en-us/training/modules/introduction-to-xamarin-android/</td>
-            <td></td>
+            <td>Done</td>
         </tr>
         <tr>
             <td></td>
@@ -50,7 +50,7 @@
             <td></td>
             <td>Create multi-page Xamarin.Forms apps with stack and tab navigation</td>
             <td>https://learn.microsoft.com/en-us/training/modules/create-multi-page-xamarin-forms-apps-with-stack-and-tab-navigation/</td>
-            <td></td>
+            <td>Done</td>
         </tr>
       <tr>
             <td></td>
