@@ -91,7 +91,7 @@
       <tr>
             <td></td>
             <td>Separate your UI and code with Xamarin.Forms data binding</td>
-            <td><https://learn.microsoft.com/en-us/training/modules/separate-your-ui-and-code-with-xamarin-forms-data-binding//td>
+            <td>https://learn.microsoft.com/en-us/training/modules/separate-your-ui-and-code-with-xamarin-forms-data-binding/</td>
             <td></td>
         </tr>
       <tr>
